@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -9,83 +9,85 @@ export default function RecipeDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDetail = async () => {
       try {
+        // Mengambil data spesifik berdasarkan ID dari Backend
         const res = await axios.get(`http://localhost:5000/api/recipes/${id}`);
         setRecipe(res.data);
-      } catch (err) { console.error(err); }
-      finally { setLoading(false); }
+      } catch (err) {
+        console.error("Gagal ambil detail:", err);
+      } finally {
+        setLoading(false);
+      }
     };
-    if (id) fetchData();
+    fetchDetail();
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-bold text-pink-500 bg-[#FFF0F5]">Memuat Detail FoodCost... 👩‍🍳</div>;
-  if (!recipe) return <div className="text-center mt-20 font-bold">Resep tidak ditemukan! 🥺 <button onClick={() => navigate('/')}>Kembali</button></div>;
-
-  {/* LOGIKA PERHITUNGAN SESUAI REQUEST */}
-  const vJual = Number(recipe.jual);
-  const vPorsi = Number(recipe.porsi);
-  const vModal = Number(recipe.modal);
-  const totalOmzet = vJual * vPorsi;
-  const untungBersih = totalOmzet - vModal;
+  if (loading) return <div className="text-center mt-20 font-bold">Sedang menyiapkan resep... 👨‍🍳</div>;
+  
+  if (!recipe) return (
+    <div className="text-center mt-20">
+      <h2 className="text-xl font-bold">Resep tidak ditemukan! 😟</h2>
+      <button onClick={() => navigate(-1)} className="text-pink-500 underline mt-4">Kembali</button>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-white font-['Quicksand'] pb-20">
-      {/* Banner Atas */}
-      <div className="relative h-96">
-        <img src={recipe.image} className="w-full h-full object-cover" alt={recipe.nama} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 flex items-end p-12">
-          <h1 className="text-5xl font-black text-white">{recipe.nama}</h1>
-        </div>
-        <button onClick={() => navigate('/')} className="absolute top-6 left-6 bg-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all">⬅️ Kembali</button>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-8 mt-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Kolom Kiri: Resep */}
-        <div className="space-y-10">
-          <section className="bg-slate-50 p-8 rounded-[3rem] border-2 border-slate-100 shadow-sm">
-            <h3 className="text-2xl font-black mb-6 flex items-center gap-3 text-[#1B263B]">📋 Resep & Bahan</h3>
-            <p className="whitespace-pre-line leading-relaxed text-slate-700 font-medium">
-              {recipe.bahan || "Data bahan belum diisi."}
-            </p>
-          </section>
-
-          <section className="bg-orange-50 p-8 rounded-[3rem] border-2 border-orange-100 shadow-sm">
-            <h3 className="text-2xl font-black mb-6 flex items-center gap-3 text-[#1B263B]">👩‍🍳 Cara Membuat</h3>
-            <p className="whitespace-pre-line leading-relaxed text-slate-700 font-medium">
-              {recipe.langkah || "Data langkah belum diisi."}
-            </p>
-          </section>
+    <div className="min-h-screen bg-[#FFF0F5] p-6 font-['Quicksand']">
+      <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-xl overflow-hidden">
+        {/* Header Image */}
+        <div className="relative h-80">
+          <img src={recipe.image} alt={recipe.nama} className="w-full h-full object-cover" />
+          <button 
+            onClick={() => navigate(-1)}
+            className="absolute top-6 left-6 bg-white/80 backdrop-blur-md p-3 rounded-2xl shadow-lg hover:bg-white transition-all"
+          >
+            ⬅️ Kembali
+          </button>
         </div>
 
-        {/* Kolom Kanan: Rincian Keuntungan Sesuai Request */}
-        <div className="bg-[#1B263B] text-white p-10 rounded-[4rem] h-fit sticky top-24 shadow-2xl border-x-4 border-pink-300">
-          <h3 className="text-3xl font-black text-center mb-10 italic border-b border-white/10 pb-6">Rincian Perhitungan 📊</h3>
+        <div className="p-8">
+          <h1 className="text-4xl font-black text-slate-800 mb-6 uppercase tracking-tight">{recipe.nama}</h1>
           
-          <div className="space-y-6 text-lg font-medium">
-            <div className="flex justify-between items-center border-b border-white/5 pb-4">
-              <span className="opacity-70 italic">💸 Harga Jual</span>
-              <span className="font-bold">Rp {vJual.toLocaleString()} / porsi</span>
+          {/* Info Cards */}
+          <div className="grid grid-cols-3 gap-4 mb-10">
+            <div className="bg-blue-50 p-4 rounded-3xl text-center border-2 border-blue-100">
+              <p className="text-[10px] font-bold text-blue-400 uppercase">Modal</p>
+              <p className="text-lg font-black text-blue-700">Rp {recipe.modal?.toLocaleString()}</p>
             </div>
-            
-            <div className="flex justify-between items-center border-b border-white/5 pb-4">
-              <span className="opacity-70 italic">📈 Total Omzet ({vPorsi} Porsi)</span>
-              <span className="font-bold text-yellow-400">Rp {totalOmzet.toLocaleString()}</span>
+            <div className="bg-green-50 p-4 rounded-3xl text-center border-2 border-green-100">
+              <p className="text-[10px] font-bold text-green-400 uppercase">Jual</p>
+              <p className="text-lg font-black text-green-700">Rp {recipe.jual?.toLocaleString()}</p>
             </div>
+            <div className="bg-purple-50 p-4 rounded-3xl text-center border-2 border-purple-100">
+              <p className="text-[10px] font-bold text-purple-400 uppercase">Porsi</p>
+              <p className="text-lg font-black text-purple-700">{recipe.porsi} Porsi</p>
+            </div>
+          </div>
 
-            <div className="flex justify-between items-center border-b border-white/5 pb-4">
-              <span className="opacity-70 italic">📉 Modal Produksi</span>
-              <span className="font-bold text-rose-400">Rp {vModal.toLocaleString()}</span>
-            </div>
+          {/* Content Section */}
+          <div className="space-y-8">
+            <section>
+              <h3 className="text-xl font-black text-pink-500 mb-3 flex items-center gap-2">
+                <span>🛒</span> Bahan-bahan
+              </h3>
+              <div className="bg-slate-50 p-6 rounded-3xl border-2 border-slate-100">
+                <p className="whitespace-pre-line text-slate-600 font-medium leading-relaxed">
+                  {recipe.bahan || "Belum ada rincian bahan."}
+                </p>
+              </div>
+            </section>
 
-            {/* Hasil Akhir */}
-            <div className="bg-white text-[#1B263B] p-8 rounded-[3rem] text-center mt-12 shadow-inner">
-              <p className="text-xs font-black uppercase tracking-widest mb-2 opacity-50">Untung Bersih Akhir</p>
-              <h4 className="text-4xl font-black text-emerald-500">
-                ± Rp {untungBersih.toLocaleString()} ✨
-              </h4>
-              <p className="text-[10px] mt-2 italic text-slate-400">*Setelah dikurangi total modal</p>
-            </div>
+            <section>
+              <h3 className="text-xl font-black text-orange-500 mb-3 flex items-center gap-2">
+                <span>👨‍🍳</span> Cara Membuat
+              </h3>
+              <div className="bg-slate-50 p-6 rounded-3xl border-2 border-slate-100">
+                <p className="whitespace-pre-line text-slate-600 font-medium leading-relaxed">
+                  {recipe.langkah || "Belum ada rincian langkah."}
+                </p>
+              </div>
+            </section>
           </div>
         </div>
       </div>
